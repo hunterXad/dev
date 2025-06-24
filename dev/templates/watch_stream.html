@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ stream.title }}</title>
+</head>
+<body style="background-color:#111; color:white; text-align:center;">
+  <h2>🎥 {{ stream.title }}</h2>
+
+  <iframe width="720" height="405"
+    src="https://www.youtube.com/embed/{{ stream.youtube_id }}?autoplay=1"
+    title="YouTube Live"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+
+
+  {% if can_edit %}
+  <hr>
+  <h3>🔄 تعديل حالة البث</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.status.label_tag }} {{ form.status }}
+    <button type="submit">تحديث الحالة</button>
+  </form>
+{% endif %}
+
+<p>🔔 الحالة الحالية: 
+  {% if stream.status == 'live' %}
+    <span style="color:green;">مباشر</span>
+  {% elif stream.status == 'upcoming' %}
+    <span style="color:blue;">قادم</span>
+  {% else %}
+    <span style="color:gray;">انتهى</span>
+  {% endif %}
+</p>
+
+</body>
+</html>

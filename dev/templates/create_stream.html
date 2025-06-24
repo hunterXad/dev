@@ -1,0 +1,7 @@
+<h2>🎥 إنشاء بث مباشر جديد</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">نشر البث</button>
+</form>
+<a href="{% url 'stream_list' %}">العودة لقائمة البثوث</a>

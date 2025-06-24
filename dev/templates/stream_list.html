@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>📺 قائمة البثوث</title>
+  <style>
+    body { background-color: #111; color: white; font-family: sans-serif; text-align: center; }
+    .stream-card { background: #222; margin: 1rem auto; padding: 1rem; border-radius: 10px; width: 60%; }
+    input, select { padding: 0.5rem; margin: 0.5rem; }
+    a { color: lightblue; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h2>📡 البثوث الحالية</h2>
+
+  <form method="get" style="margin-bottom: 2rem;">
+    <input type="text" name="search" placeholder="🔍 ابحث بعنوان البث..." value="{{ request.GET.search }}">
+    <select name="category">
+      <option value="">🗂️ كل التصنيفات</option>
+      {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit">فلترة</button>
+  </form>
+
+  {% for stream in streams %}
+    <div class="stream-card">
+      <h3><a href="{% url 'watch_stream' stream.id %}">{{ stream.title }}</a></h3>
+      <p>🗂️ التصنيف: {{ stream.category.name }}</p>
+      <p>🔔 الحالة:
+        {% if stream.status == 'live' %}
+          <span style="color:green;">مباشر</span>
+        {% elif stream.status == 'upcoming' %}
+          <span style="color:blue;">قادم</span>
+        {% else %}
+          <span style="color:gray;">انتهى</span>
+        {% endif %}
+      </p>
+    </div>
+  {% empty %}
+    <p>🚫 لا توجد بثوث حالياً</p>
+  {% endfor %}
+
+  <a href="{% url 'create_stream' %}">➕ إضافة بث جديد</a>
+</body>
+</html>
