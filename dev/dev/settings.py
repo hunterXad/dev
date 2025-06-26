@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'users',
     'django_filters',
     'videos',
+    'stream',
     
 ]
 
@@ -54,6 +55,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 
@@ -72,7 +76,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'dev.urls'
-
+LOGIN_URL = '/login/'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

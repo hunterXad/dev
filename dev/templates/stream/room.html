@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>غرفة البث - {{ room_name }}</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      direction: rtl;
+      font-family: sans-serif;
+    }
+    #jitsi-container {
+      width: 100%;
+      height: 100vh;
+    }
+    .invite-box {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+    .requests-box {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: white;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 10px;
+      z-index: 1000;
+    }
+    .requests-box h5 {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- بث Jitsi -->
+<div id="jitsi-container"></div>
+
+<!-- ✅ رابط الدعوة (للمضيف فقط) -->
+{% if is_owner %}
+<div class="invite-box">
+  <strong>رابط الدعوة:</strong><br>
+  <input type="text" class="form-control" value="{{ request.build_absolute_uri|cut:'room' }}lobby/{{ room_name }}/" readonly>
+</div>
+{% endif %}
+
+<!-- ✅ الطلبات المعلقة -->
+{% if is_owner and pending_requests %}
+<div class="requests-box">
+  <h5>طلبات الانضمام</h5>
+  {% for req in pending_requests %}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span>{{ req.name }}</span>
+      <div>
+        <form method="post" action="{% url 'handle_join_request' room_name=room_name %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="approve">
+          <input type="hidden" name="name" value="{{ req.name }}">
+          <button type="submit" class="btn btn-sm btn-success">قبول</button>
+        </form>
+        <form method="post" action="{% url 'handle_join_request' room_name=room_name %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="reject">
+          <input type="hidden" name="name" value="{{ req.name }}">
+          <button type="submit" class="btn btn-sm btn-danger">رفض</button>
+        </form>
+      </div>
+    </div>
+  {% empty %}
+    <p>لا توجد طلبات حالية</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ✅ تضمين Jitsi -->
+<script src="https://meet.jit.si/external_api.js"></script>
+<script>
+  const isOwner = {{ is_owner|yesno:"true,false" }};
+  const domain = "meet.jit.si";
+  const options = {
+    roomName: "{{ room_name }}",
+    parentNode: document.querySelector('#jitsi-container'),
+    userInfo: {
+      displayName: localStorage.getItem("username") || "مشارك"
+    },
+    configOverwrite: {
+      disableDeepLinking: true
+    }
+  };
+  const api = new JitsiMeetExternalAPI(domain, options);
+
+  if (isOwner) {
+    console.log("✅ المضيف داخل الغرفة");
+  } else {
+    console.log("👤 ضيف داخل الغرفة");
+  }
+</script>
+
+</body>
+</html>

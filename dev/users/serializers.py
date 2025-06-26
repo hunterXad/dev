@@ -2,7 +2,11 @@ from rest_framework import serializers
 from .models import CustomUser, Profile
 from django.contrib.auth.password_validation import validate_password
 
-
+class UserMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'first_name', 'last_name', 'profile_picture']
+    
 # ✅ 1. تسجيل مستخدم
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
@@ -25,15 +29,32 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 # ✅ 2. ملف المستخدم (البروفايل)
 class ProfileSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    user = UserMiniSerializer(read_only=True)
     bio = serializers.CharField(source='user.bio', read_only=True)
     profile_picture = serializers.ImageField(source='user.profile_picture', read_only=True)
-    following = serializers.SlugRelatedField(many=True, read_only=True, slug_field='user__username')
+    score = serializers.IntegerField(read_only=True)
+    following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ['user', 'bio', 'profile_picture', 'score', 'following', 'followers']
+        fields = [
+            'user', 'bio', 'profile_picture', 'score',
+            'following', 'followers',
+            'following_count', 'followers_count'
+        ]
+
+    def get_following(self, obj):
+        return UserMiniSerializer([p.user for p in obj.following.all()], many=True).data
 
     def get_followers(self, obj):
-        return [profile.user.username for profile in Profile.objects.filter(following=obj)]
+        followers_profiles = Profile.objects.filter(following=obj)
+        return UserMiniSerializer([p.user for p in followers_profiles], many=True).data
+
+    def get_following_count(self, obj):
+        return obj.following.count()
+
+    def get_followers_count(self, obj):
+        return Profile.objects.filter(following=obj).count()
